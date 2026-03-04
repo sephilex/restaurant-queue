@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0c0a1a">
+    <title>预计等候时间</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            background: #0c0a1a;
+        }
+
+        .bg-screen {
+            position: fixed;
+            top: -50px;
+            left: -50px;
+            right: -50px;
+            bottom: -50px;
+            background: linear-gradient(135deg, #0c0a1a 0%, #1a1035 40%, #0f172a 100%);
+            z-index: -2;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            color: #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            padding-top: max(24px, env(safe-area-inset-top));
+            padding-bottom: max(24px, env(safe-area-inset-bottom));
+            overflow: hidden;
+        }
+
+        .bg-circle {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            z-index: 0;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .bg-circle:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            background: #f97316;
+            top: -80px;
+            left: -60px;
+        }
+
+        .bg-circle:nth-child(2) {
+            width: 250px;
+            height: 250px;
+            background: #818cf8;
+            bottom: -60px;
+            right: -40px;
+            animation-delay: -3s;
+        }
+
+        .bg-circle:nth-child(3) {
+            width: 200px;
+            height: 200px;
+            background: #38bdf8;
+            top: 40%;
+            left: 60%;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(-30px) scale(1.05);
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+        }
+
+        .shop-name {
+            font-size: 1rem;
+            color: #94a3b8;
+            margin-bottom: 40px;
+            letter-spacing: 0.05em;
+        }
+
+        .wait-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 28px;
+            padding: 48px 32px;
+            margin-bottom: 24px;
+        }
+
+        .wait-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 16px;
+        }
+
+        .wait-time {
+            font-size: 6rem;
+            font-weight: 800;
+            line-height: 1;
+            background: linear-gradient(135deg, #fbbf24, #f97316, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .wait-time.pulse {
+            animation: pulse 0.6s ease;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            30% {
+                transform: scale(1.06);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .wait-unit {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .portions-info {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .portions-info span {
+            color: #38bdf8;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 100px;
+            padding: 8px 18px;
+            font-size: 0.8rem;
+            color: #4ade80;
+            margin-bottom: 32px;
+        }
+
+        .status-badge.busy {
+            background: rgba(249, 115, 22, 0.12);
+            border-color: rgba(249, 115, 22, 0.2);
+            color: #fb923c;
+        }
+
+        .status-badge.very-busy {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        /* 跳转提示 */
+        .redirect-info {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .redirect-info .countdown {
+            color: #fbbf24;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        /* 继续点餐按钮 */
+        .btn-continue {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 16px 48px;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(249, 115, 22, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-continue:hover {
+            box-shadow: 0 6px 28px rgba(249, 115, 22, 0.45);
+            transform: translateY(-1px);
+        }
+
+        .btn-continue:active {
+            transform: scale(0.95);
+        }
+
+        .refresh-note {
+            font-size: 0.7rem;
+            color: #475569;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-screen"></div>
+    <div class="bg-circle"></div>
+    <div class="bg-circle"></div>
+    <div class="bg-circle"></div>
+
+    <div class="container">
+        <div class="shop-name">🍽️ 预计等候时间</div>
+
+        <div id="statusBadge" class="status-badge">
+            <div class="status-dot"></div>
+            <span id="statusText">加载中</span>
+        </div>
+
+        <div class="wait-card">
+            <div class="wait-label">预计还需等待</div>
+            <div id="waitContent">
+                <div class="wait-time" id="waitTime">-</div>
+                <div class="wait-unit">分钟</div>
+            </div>
+            <div class="portions-info">
+                当前排队 <span id="portionCount">-</span> 份
+            </div>
+        </div>
+
+        <!-- 5~10分钟：倒计时自动跳转 -->
+        <div class="redirect-info" id="countdownArea" style="display:none">
+            <span class="countdown" id="countdownNum">5</span> 秒后自动跳转点餐页面…
+        </div>
+
+        <!-- >=10分钟：手动点击跳转 -->
+        <button class="btn-continue" id="btnContinue" style="display:none" onclick="goOrder()">继续点餐</button>
+
+        <div class="refresh-note" id="refreshNote"></div>
+    </div>
+
+    <script>
+        const REDIRECT_URL = 'https://m.sqbe.cn/2d?c=25090203479144875194';
+
+        const waitTimeEl = document.getElementById('waitTime');
+        const portionCountEl = document.getElementById('portionCount');
+        const statusBadge = document.getElementById('statusBadge');
+        const statusText = document.getElementById('statusText');
+        const countdownArea = document.getElementById('countdownArea');
+        const countdownNum = document.getElementById('countdownNum');
+        const btnContinue = document.getElementById('btnContinue');
+        const refreshNote = document.getElementById('refreshNote');
+
+        let countdownTimer = null;
+
+        function goOrder() {
+            window.location.href = REDIRECT_URL;
+        }
+
+        function startCountdown() {
+            let seconds = 5;
+            countdownNum.textContent = seconds;
+            countdownArea.style.display = 'block';
+            btnContinue.style.display = 'none';
+
+            countdownTimer = setInterval(() => {
+                seconds--;
+                countdownNum.textContent = seconds;
+                if (seconds <= 0) {
+                    clearInterval(countdownTimer);
+                    goOrder();
+                }
+            }, 1000);
+        }
+
+        function updateStatus(count, minutes) {
+            portionCountEl.textContent = count;
+            waitTimeEl.textContent = minutes;
+
+            // 清除之前的倒计时
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+            }
+
+            if (minutes < 5) {
+                // < 5分钟：直接跳转（理论上不会到这里，服务器已302）
+                goOrder();
+                return;
+            } else if (minutes < 10) {
+                // 5~9分钟：显示页面，5秒后自动跳转
+                statusBadge.className = 'status-badge busy';
+                statusText.textContent = '略有繁忙';
+                countdownArea.style.display = 'block';
+                btnContinue.style.display = 'none';
+                refreshNote.textContent = '';
+                startCountdown();
+            } else {
+                // >= 10分钟：显示页面，需要点击跳转
+                statusBadge.className = 'status-badge very-busy';
+                statusText.textContent = '高峰时段';
+                countdownArea.style.display = 'none';
+                btnContinue.style.display = 'inline-block';
+                refreshNote.textContent = '每 10 秒自动更新等待时间';
+            }
+
+            // pulse animation
+            waitTimeEl.classList.remove('pulse');
+            void waitTimeEl.offsetWidth;
+            waitTimeEl.classList.add('pulse');
+        }
+
+        async function fetchQueue() {
+            try {
+                const res = await fetch('/api/queue');
+                const data = await res.json();
+                updateStatus(data.count, data.waitMinutes);
+            } catch (e) {
+                console.error('获取数据失败', e);
+            }
+        }
+
+        // 初始加载
+        fetchQueue();
+        // >= 10分钟场景下每10秒刷新等待时间
+        setInterval(() => {
+            // 只在非倒计时状态下刷新
+            if (!countdownTimer) {
+                fetchQueue();
+            }
+        }, 10000);
+    </script>
+</body>
+
+</html>
