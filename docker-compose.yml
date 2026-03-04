@@ -1,0 +1,9 @@
+services:
+  queue:
+    build: .
+    container_name: restaurant-queue
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data.json:/app/data.json
+    restart: unless-stopped
