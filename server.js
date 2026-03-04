@@ -4,7 +4,8 @@ const fs = require('fs');
 
 const app = express();
 const PORT = 3000;
-const DATA_FILE = path.join(__dirname, 'data.json');
+const DATA_DIR = path.join(__dirname, 'data');
+const DATA_FILE = path.join(DATA_DIR, 'data.json');
 const REDIRECT_URL = 'https://m.sqbe.cn/2d?c=25090203479144875194';
 
 // 内存中存储状态
@@ -16,6 +17,9 @@ let autoCompleteTimer = null;
 // ===== 持久化 =====
 function loadState() {
   try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
     if (fs.existsSync(DATA_FILE)) {
       const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
       queueCount = data.queueCount ?? 0;
