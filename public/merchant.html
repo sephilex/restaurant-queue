@@ -379,6 +379,22 @@
       </label>
     </div>
     <div class="setting-row">
+      <div class="setting-label">前端显示+1<small>让顾客和显示屏看到排队+1且时间增加</small></div>
+      <label class="toggle">
+        <input type="checkbox" id="plusOneToggle" onchange="togglePlusOne()">
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">高峰时段界限<small>大于等于该时间将显示红色警告</small></div>
+      <div class="stepper">
+        <button class="stepper-btn" onclick="changePeakMinutes(-1)">−</button>
+        <span class="stepper-value" id="peakMinutesValue">10</span>
+        <button class="stepper-btn" onclick="changePeakMinutes(1)">+</button>
+        <span class="stepper-unit">分钟</span>
+      </div>
+    </div>
+    <div class="setting-row">
       <div class="setting-label">每份等待时长</div>
       <div class="stepper">
         <button class="stepper-btn" onclick="changeMinutes(-1)">−</button>
@@ -397,10 +413,13 @@
     const lastUpdate = document.getElementById('lastUpdate');
     const toastEl = document.getElementById('toast');
     const autoToggle = document.getElementById('autoToggle');
+    const plusOneToggle = document.getElementById('plusOneToggle');
     const minutesValue = document.getElementById('minutesValue');
+    const peakMinutesValue = document.getElementById('peakMinutesValue');
 
     let toastTimer;
     let currentMinutes = 3;
+    let currentPeakMinutes = 10;
 
     function showToast(msg) {
       toastEl.textContent = msg;
@@ -419,8 +438,15 @@
         currentMinutes = data.minutesPerPortion;
         minutesValue.textContent = currentMinutes;
       }
+      if (data.peakMinutes !== undefined) {
+        currentPeakMinutes = data.peakMinutes;
+        peakMinutesValue.textContent = currentPeakMinutes;
+      }
       if (data.autoComplete !== undefined) {
         autoToggle.checked = data.autoComplete;
+      }
+      if (data.plusOneDisplay !== undefined) {
+        plusOneToggle.checked = data.plusOneDisplay;
       }
 
       countDisplay.classList.add('bump');
@@ -490,6 +516,36 @@
       }
     }
 
+    async function togglePlusOne() {
+      try {
+        const res = await fetch('/api/settings/plus-one', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: plusOneToggle.checked })
+        });
+        const data = await res.json();
+        updateUI(data);
+        showToast(data.plusOneDisplay ? '显示+1已开启' : '显示+1已关闭');
+      } catch (e) {
+        showToast('操作失败');
+      }
+    }
+
+    async function togglePlusOne() {
+      try {
+        const res = await fetch('/api/settings/plus-one', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: plusOneToggle.checked })
+        });
+        const data = await res.json();
+        updateUI(data);
+        showToast(data.plusOneDisplay ? '显示+1已开启' : '显示+1已关闭');
+      } catch (e) {
+        showToast('操作失败');
+      }
+    }
+
     async function changeMinutes(delta) {
       const newVal = currentMinutes + delta;
       if (newVal < 1 || newVal > 30) return;
@@ -502,6 +558,23 @@
         const data = await res.json();
         updateUI(data);
         showToast(`每份等待 ${data.minutesPerPortion} 分钟`);
+      } catch (e) {
+        showToast('操作失败');
+      }
+    }
+
+    async function changePeakMinutes(delta) {
+      const newVal = currentPeakMinutes + delta;
+      if (newVal < 1 || newVal > 120) return;
+      try {
+        const res = await fetch('/api/settings/peak-minutes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ minutes: newVal })
+        });
+        const data = await res.json();
+        updateUI(data);
+        showToast(`高峰界限已设为 ${data.peakMinutes} 分钟`);
       } catch (e) {
         showToast('操作失败');
       }

@@ -11,7 +11,9 @@ const REDIRECT_URL = 'https://m.sqbe.cn/2d?c=25090203479144875194';
 // 内存中存储状态
 let queueCount = 0;
 let minutesPerPortion = 3;
+let peakMinutes = 10;
 let autoComplete = false;
+let plusOneDisplay = false;
 let autoCompleteTimer = null;
 
 // ===== 持久化 =====
@@ -24,8 +26,10 @@ function loadState() {
       const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
       queueCount = data.queueCount ?? 0;
       minutesPerPortion = data.minutesPerPortion ?? 3;
+      peakMinutes = data.peakMinutes ?? 10;
       autoComplete = data.autoComplete ?? false;
-      console.log(`📂 已加载状态: ${queueCount}份, ${minutesPerPortion}分钟/份, 自动销单${autoComplete ? '开' : '关'}`);
+      plusOneDisplay = data.plusOneDisplay ?? false;
+      console.log(`📂 已加载状态: ${queueCount}份, ${minutesPerPortion}分钟/份, 高峰界限${peakMinutes}分钟, 自动销单${autoComplete ? '开' : '关'}, 显示+1${plusOneDisplay ? '开' : '关'}`);
     }
   } catch (e) {
     console.error('⚠️  加载状态失败，使用默认值', e.message);
@@ -37,7 +41,9 @@ function saveState() {
     fs.writeFileSync(DATA_FILE, JSON.stringify({
       queueCount,
       minutesPerPortion,
-      autoComplete
+      peakMinutes,
+      autoComplete,
+      plusOneDisplay
     }, null, 2));
   } catch (e) {
     console.error('⚠️  保存状态失败', e.message);
@@ -88,18 +94,16 @@ function queueResponse() {
     count: queueCount,
     waitMinutes: queueCount * minutesPerPortion,
     minutesPerPortion,
-    autoComplete
+    peakMinutes,
+    autoComplete,
+    plusOneDisplay
   };
 }
 
 app.use(express.json());
 
-// 客户页面：等待时间 < 5分钟时直接 302 跳转
+// 客户页面
 app.get('/customer.html', (req, res) => {
-  const waitMinutes = queueCount * minutesPerPortion;
-  if (waitMinutes < 5) {
-    return res.redirect(302, REDIRECT_URL);
-  }
   res.sendFile(path.join(__dirname, 'public', 'customer.html'));
 });
 
@@ -143,6 +147,17 @@ app.post('/api/queue/reset', (req, res) => {
   res.json(queueResponse());
 });
 
+// 设置高峰时间界限
+app.post('/api/settings/peak-minutes', (req, res) => {
+  const { minutes } = req.body;
+  if (typeof minutes !== 'number' || minutes < 1 || minutes > 120) {
+    return res.status(400).json({ error: '时长需在 1~120 分钟之间' });
+  }
+  peakMinutes = minutes;
+  saveState();
+  res.json(queueResponse());
+});
+
 // 设置每份等待时长
 app.post('/api/settings/minutes', (req, res) => {
   const { minutes } = req.body;
@@ -168,6 +183,14 @@ app.post('/api/settings/auto-complete', (req, res) => {
     stopAutoComplete();
     if (queueCount <= 0) autoComplete = false;
   }
+  res.json(queueResponse());
+});
+
+// 切换显示+1模式
+app.post('/api/settings/plus-one', (req, res) => {
+  const { enabled } = req.body;
+  plusOneDisplay = !!enabled;
+  saveState();
   res.json(queueResponse());
 });
 

@@ -40,6 +40,7 @@
             padding: 24px 16px;
             padding-top: max(24px, env(safe-area-inset-top));
             padding-bottom: max(24px, env(safe-area-inset-bottom));
+            overflow: hidden;
         }
 
         .bg-circle {
@@ -215,41 +216,53 @@
             }
         }
 
-        /* 跳转提示 & 继续点餐按钮 (已移除旧版逻辑) */
+        /* Layout extensions for QR code */
         
-        /* 二维码展示区 */
-        .qr-section {
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 28px;
-            padding: 32px 32px;
-            margin-bottom: 24px;
+        .layout-wrapper {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 120px;
+            width: 100%;
+            max-width: 1600px;
+            position: relative;
+            z-index: 1;
+            transform: scale(1.4);
+            transform-origin: center;
+        }
+
+        .container {
+            margin: 0;
+            width: 500px;
+        }
+
+        .qr-container {
             display: flex;
             flex-direction: column;
             align-items: center;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 36px;
+            padding: 64px 48px;
         }
 
         .qr-image {
-            width: 180px;
-            height: 180px;
-            border-radius: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            width: 320px;
+            height: 320px;
+            border-radius: 20px;
+            margin-bottom: 32px;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+            border: 4px solid rgba(255, 255, 255, 0.1);
         }
 
         .qr-hint {
-            font-size: 1rem;
+            font-size: 2.2rem;
             color: #e2e8f0;
-            font-weight: 600;
+            font-weight: 800;
             letter-spacing: 0.05em;
-        }
-        
-        .qr-hint-sub {
-            font-size: 0.8rem;
-            color: #94a3b8;
-            margin-top: 4px;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -260,29 +273,28 @@
     <div class="bg-circle"></div>
     <div class="bg-circle"></div>
 
-    <div class="container">
-        <div class="shop-name">🍽️ 预计等候时间</div>
+    <div class="layout-wrapper">
+        <div class="container">
+            <div id="statusBadge" class="status-badge">
+                <div class="status-dot"></div>
+                <span id="statusText">加载中</span>
+            </div>
 
-        <div id="statusBadge" class="status-badge">
-            <div class="status-dot"></div>
-            <span id="statusText">加载中</span>
+            <div class="wait-card">
+                <div class="wait-label">预计还需等待</div>
+                <div id="waitContent">
+                    <div class="wait-time" id="waitTime">-</div>
+                    <div class="wait-unit">分钟</div>
+                </div>
+                <div class="portions-info">
+                    当前排队 <span id="portionCount">-</span> 份
+                </div>
+            </div>
         </div>
 
-        <div class="wait-card">
-            <div class="wait-label">预计还需等待</div>
-            <div id="waitContent">
-                <div class="wait-time" id="waitTime">-</div>
-                <div class="wait-unit">分钟</div>
-            </div>
-            <div class="portions-info">
-                当前排队 <span id="portionCount">-</span> 份
-            </div>
-        </div>
-
-        <div class="qr-section">
+        <div class="qr-container">
             <img src="/order.png" alt="点餐二维码" class="qr-image" />
-            <div class="qr-hint">识别二维码点餐</div>
-            <div class="qr-hint-sub">微信内长按图片即可识别</div>
+            <div class="qr-hint">欢迎微信扫码点餐</div>
         </div>
     </div>
 
