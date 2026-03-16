@@ -6,6 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0c0a1a">
     <title>预计等候时间</title>
+    <!-- 图标与分享 Meta 标签 -->
+    <link rel="icon" href="/favicon.ico?v=2">
+    <link rel="apple-touch-icon" href="/favicon.ico?v=2">
+    
+    <!-- 微信/社交媒体分享卡片信息 -->
+    <meta property="og:title" content="预计等候时间">
+    <meta property="og:description" content="扫码进入排队，实时查看餐厅等候时长。">
+    <meta property="og:image" content="/hx.jpeg">
+    <meta property="og:type" content="website">
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         * {
@@ -99,9 +109,9 @@
         }
 
         .shop-name {
-            font-size: 1rem;
+            font-size: clamp(1.5rem, 4vw, 3.5rem);
             color: #94a3b8;
-            margin-bottom: 40px;
+            margin-bottom: clamp(24px, 5vh, 60px);
             letter-spacing: 0.05em;
         }
 
@@ -109,25 +119,34 @@
             background: rgba(255, 255, 255, 0.04);
             backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 28px;
-            padding: 48px 32px;
-            margin-bottom: 24px;
+            border-radius: 32px;
+            padding: 24px 24px;
+            width: 100%;
+            margin-bottom: 0px; /* Removed margin so it aligns to bottom exactly */
+            box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            flex-grow: 1; /* Allow it to fill the space in the flex container if needed, or we can just justify-space-between */
+            margin-top: clamp(24px, 5vh, 60px); /* Add spacing above it so it doesn't collide with status badge if screen is small */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
-
         .wait-label {
-            font-size: 0.85rem;
+            font-size: clamp(1.2rem, 3vw, 2.5rem);
             color: #94a3b8;
             text-transform: uppercase;
             letter-spacing: 0.15em;
-            margin-bottom: 16px;
+            margin-bottom: 24px;
         }
 
         .wait-time {
-            font-size: 6rem;
+            font-size: clamp(6rem, 20vw, 18rem);
             font-weight: 800;
             line-height: 1;
             background: linear-gradient(135deg, #fbbf24, #f97316, #ef4444);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 8px;
             transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
@@ -152,36 +171,37 @@
         }
 
         .wait-unit {
-            font-size: 1.5rem;
+            font-size: clamp(2rem, 5vw, 4rem);
             font-weight: 600;
             color: #94a3b8;
         }
 
         .portions-info {
-            margin-top: 24px;
-            padding-top: 20px;
+            margin-top: clamp(24px, 4vh, 40px);
+            padding-top: clamp(20px, 3vh, 32px);
             border-top: 1px solid rgba(255, 255, 255, 0.06);
-            font-size: 0.9rem;
+            font-size: clamp(1.2rem, 3vw, 2.5rem);
             color: #64748b;
         }
 
         .portions-info span {
             color: #38bdf8;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: clamp(1.5rem, 4vw, 3.5rem);
         }
 
         .status-badge {
             display: inline-flex;
             align-items: center;
+            align-self: center; /* Prevent stretching to full width of column */
             gap: 6px;
             background: rgba(34, 197, 94, 0.12);
             border: 1px solid rgba(34, 197, 94, 0.2);
             border-radius: 100px;
-            padding: 8px 18px;
-            font-size: 0.8rem;
+            padding: clamp(12px, 2vw, 24px) clamp(24px, 4vw, 48px);
+            font-size: clamp(1.2rem, 2.5vw, 2.5rem);
             color: #4ade80;
-            margin-bottom: 32px;
+            margin-bottom: 0px; /* Removed margin so it aligns to top exactly */
         }
 
         .status-badge.busy {
@@ -221,46 +241,54 @@
         .layout-wrapper {
             display: flex;
             flex-direction: row;
-            align-items: center;
+            align-items: stretch; /* Make both columns the same height */
             justify-content: center;
-            gap: 120px;
+            gap: 8vw;
             width: 100%;
-            max-width: 1600px;
+            max-width: 1800px;
             position: relative;
             z-index: 1;
-            transform: scale(1.4);
-            transform-origin: center;
+            flex-wrap: wrap;
+            padding: 40px;
         }
 
         .container {
             margin: 0;
-            width: 500px;
+            width: 100%;
+            max-width: 800px;
+            flex: 1 1 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Push status badge to top, wait-card to bottom */
         }
 
         .qr-container {
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center; /* Center content vertically within the stretched box */
             background: rgba(255, 255, 255, 0.04);
             backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 36px;
-            padding: 64px 48px;
+            padding: clamp(40px, 6vw, 80px) clamp(32px, 6vw, 64px);
+            flex: 1 1 500px;
+            max-width: 800px;
         }
 
         .qr-image {
-            width: 320px;
-            height: 320px;
+            width: clamp(250px, 30vw, 450px);
+            height: clamp(250px, 30vw, 450px);
             border-radius: 20px;
-            margin-bottom: 32px;
+            margin-bottom: clamp(16px, 3vh, 32px);
             box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
             border: 4px solid rgba(255, 255, 255, 0.1);
         }
 
         .qr-hint {
-            font-size: 2.2rem;
+            font-size: clamp(1.2rem, 3vw, 2.5rem);
             color: #e2e8f0;
-            font-weight: 800;
+            font-weight: 600;
             letter-spacing: 0.05em;
             text-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
